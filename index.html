@@ -205,407 +205,333 @@ class: middle
 
 class: middle
 
-The probabilistic model is given and motivated by domain knowledge assumptions.
+**Big data** is the term for a collection of data sets so large and complex that
+it becomes difficult to process using on-hand database management
+tools or traditional data processing applications. The challenges include
+capture, curation, storage.
 
-Examples include:
-- Linear discriminant analysis
-- Bayesian networks
-- Hidden Markov models
-- Probabilistic programs
-
----
-
-class: middle
-
-The probabilistic model defines a joint probability distribution $p(\mathbf{x}, \mathbf{z})$, which decomposes as
-$$p(\mathbf{x}, \mathbf{z}) = p(\mathbf{x}|\mathbf{z}) p(\mathbf{z}).$$
-If we interpret $\mathbf{z}$ as causal factors for the high-dimension representations $\mathbf{x}$, then
-sampling from $p(\mathbf{x}|\mathbf{z})$ can be interpreted as **a stochastic generating process** from $\mathcal{Z}$ to $\mathcal{X}$.
-
-For a given model $p(\mathbf{x}, \mathbf{z})$, inference consists in computing the posterior
-$$p(\mathbf{z}|\mathbf{x}) = \frac{p(\mathbf{x}|\mathbf{z}) p(\mathbf{z})}{p(\mathbf{x})}.$$
-
-For most interesting cases, this is usually intractable since it requires evaluating the evidence
-$$p(\mathbf{x}) = \int p(\mathbf{x}|\mathbf{z})p(\mathbf{z}) d\mathbf{z}.$$
-
----
-
-# Variational inference
-
-
-<center><img src="figures/lec6/vi.png" width="350"></center>
-
-
-**Variational inference** turns posterior inference into an optimization problem.
-- Consider a family of distributions $q(\mathbf{z}|\mathbf{x}; \nu)$ that approximate the posterior $p(\mathbf{z}|\mathbf{x})$, where the
-variational parameters $\nu$ index the family of distributions.
-- The parameters $\nu$ are fit to minimize the KL divergence between $p(\mathbf{z}|\mathbf{x})$ and the approximation $q(\mathbf{z}|\mathbf{x};\nu)$.
+**Data science** incorporates varying elements and builds on techniques and
+theories from many fields, including mathematics, statistics, data engineering,
+pattern recognition and learning, advanced computing, visualization,
+uncertainty modeling, data warehousing, and high performance computing with
+the goal of extracting meaning from data and creating data products.
 
 ---
 
 class: middle
 
-Formally, we want to minimize
-$$\begin{aligned}
-KL(q\(\mathbf{z}|\mathbf{x};\nu) || p(\mathbf{z}|\mathbf{x})) &= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\nu)}\left[\log \frac{q(\mathbf{z}|\mathbf{x} ; \nu)}{p(\mathbf{z}|\mathbf{x})}\right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\nu)}\left[ \log q(\mathbf{z}|\mathbf{x};\nu) - \log p(\mathbf{x},\mathbf{z}) \right] + \log p(\mathbf{x}).
-\end{aligned}$$
-For the same reason as before, the KL divergence cannot be directly minimized because
-of the $\log p(\mathbf{x})$ term.
+# Què aprendreu?
+
++ Com cercar informació (a la web).
++ Com anar més enllà de la cerca: el “descobriment” d’informació.
++ Com processar i analitzar seqüencialment grans volums de dades.
++ Com dirigir processos d’explotació-exploració.
++ Com analitzar “xarxes socials”.
++ Etc.
+
+---
+
+## Què és aquesta assignatura?
+
+Aquesta assignatura te per objectiu fer una introducció pràctica als nous
+usos que la informàtica adopta de forma contínua, des de la intel·ligència
+col·lectiva a l'anàlisi de xarxes socials.
+
+## Què s’espera dels estudiants matriculats?
+
+Els estudiants hauran de participar de forma activa durant les classes de
+teoria i també hauran de participar en el disseny i desenvolupament
+d’algunes aplicacions.
+
+## Quins objectius té l’assignatura?
+
+Entendre els usos de la informàtica com a barreja de bases algorísmiques i
+necessitats humanes (personals i socials) + Estudiar les bases
+algorísmiques que fan possible l’evolució dels usos i analitzar algunes
+aplicacions + Assentar les bases per generar noves idees i fer projectes
+innovadors en aquestes àrees.
 
 ---
 
 class: middle
 
-However, we can write
-$$
-KL(q(\mathbf{z}|\mathbf{x};\nu) || p(\mathbf{z}|\mathbf{x})) = \log p(\mathbf{x}) - \underbrace{\mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\nu)}\left[ \log p(\mathbf{x},\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x};\nu) \right]}\_{\text{ELBO}(\mathbf{x};\nu)}
-$$
-where $\text{ELBO}(\mathbf{x};\nu)$ is called the **evidence lower bound objective**.
+### Quins llenguatges farem servir?
 
-- Since $\log p(\mathbf{x})$ does not depend on $\nu$, it can be considered as a constant, and minimizing the KL divergence is equivalent to maximizing the evidence lower bound, while being computationally tractable.
-- Given a dataset $\mathbf{d} = \\\{\mathbf{x}\_i|i=1, ..., N\\\}$, the final objective is the sum $\sum\_{\\\{\mathbf{x}\_i \in \mathbf{d}\\\}} \text{ELBO}(\mathbf{x}\_i;\nu)$.
+Farem servir un llenguatge (Python) i una sèrie de mòduls (IPython, pandas, matplotlib, numpy,
+networkx, etc.) que constitueixen un dels entorns més desenvolupats de ciència de dades.
 
----
-
-class: middle
-
-Remark that
-$$\begin{aligned}
-\text{ELBO}(\mathbf{x};\nu) &= \mathbb{E}\_{q(\mathbf{z};|\mathbf{x}\nu)}\left[ \log p(\mathbf{x},\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x};\nu) \right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\nu)}\left[ \log p(\mathbf{x}|\mathbf{z}) p(\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x};\nu) \right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\nu)}\left[ \log p(\mathbf{x}|\mathbf{z})\right] - KL(q(\mathbf{z}|\mathbf{x};\nu) || p(\mathbf{z}))
-\end{aligned}$$
-Therefore, maximizing the ELBO:
-- encourages distributions to place their mass on configurations of latent variables that explain the observed data (first term);
-- encourages distributions close to the prior (second term).
+### Com s’organitza l’assignatura?
+L’assignatura s’imparteix en classes teòriques i classes de pràctiques. L’assignatura es coordinarà
+mitjançat el Campus Virtual de la UB i GitHub. A través d’aquest entorn tindreu: anuncis, apunts, notes,
+fòrum, calendari, enllaços a la bibliografia, etc.
+Poseu-hi una fotografia digital vostre.
 
 ---
 
 class: middle
 
-## Optimization
+### Com seran les classes teòriques (2 hores a la setmana)
+Les classes es dedicaran a l’exposició del temari teòric de l’assignatura.
 
-We want
-$$\begin{aligned}
-\nu^{\*} &= \arg \max\_\nu \text{ELBO}(\mathbf{x};\nu) \\\\
-&= \arg \max\_\nu \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\nu)}\left[ \log p(\mathbf{x},\mathbf{z}) - \log q(\mathbf{z}|\mathbf{x};\nu) \right].
-\end{aligned}$$
-
-We can proceed by gradient ascent, provided we can evaluate $\nabla\_\nu \text{ELBO}(\mathbf{x};\nu)$.
-
-In general,
-this gradient is difficult to compute because the expectation is unknown and the parameters $\nu$ are parameters of the distribution $q(\mathbf{z}|\mathbf{x};\nu)$ we integrate over.
+### Com seran les classes pràctiques (2 hores presencials a la setmana)
+Es fan amb l’ajut de les Aules d’Informàtica. Els estudiants s’han d’organitzar en grups de 2 persones.
 
 ---
 
 class: middle
 
-# Variational auto-encoders
+# Com s’avaluarà l’assignatura?
+
+L’assignatura seguirà un esquema d’avaluació continuada, amb dos elements principals: proves presencials i lliurament
+remot de pràctiques.
+
++ Lliurament via web de pràctiques (LP): Els professors proposaran una sèrie de pràctiques
+que hauran de ser lliurats via web per l’alumne dins del període assenyalat pel professor. Cada un dels lliuraments serà
+avaluat pel professor amb una nota que pot anar de 0 (nota mínima) a 10 (nota màxima). En cas de no lliurar les
+pràctiques dins del període assenyalat, l’alumne obtindrà un 0. La nota final (LP) de la part de lliurament de pràctiques
+serà la mitja de tots els lliuraments.
++ Proves presencials (PP): durant el curs, l’alumne realitzarà varies proves escrites (teòrico-pràctiques) davant del
+professor. Les proves s’avaluaran amb una nota de 0 (nota mínima) a 10 (nota màxima). La nota final (PP) d’aquesta
+part serà la mitja de totes les proves realitzades (una prova no realitzada = 0).
 
 ---
 
 class: middle
 
-So far we assumed a prescribed probabilistic model motivated by domain knowledge.
-We will now directly learn a stochastic generating process with a neural network.
+#Com s’avaluarà l’assignatura?
 
----
+La nota segons l’avaluació continuada (NF) es calcularà de la següent manera:
++ Si `(LP>4,0 i PP>4,0): NF = PP * 0,5 + LP * 0,5 `
++ Sinó, `NF = min(4.0, PP * 0,5 + LP * 0,5)`.
 
-# Variational auto-encoders
+Durant la segona prova presencial (Gener) es donarà l’opció de presentar-se de tota l’assignatura o només de la segona
+part. 
 
-
-
-A variational auto-encoder is a deep latent variable model where:
-- The likelihood $p(\mathbf{x}|\mathbf{z};\theta)$ is parameterized with a **generative network** $\text{NN}\_\theta$
-(or decoder) that takes as input $\mathbf{z}$ and outputs parameters $\phi = \text{NN}\_\theta(\mathbf{z})$ to the data distribution. E.g.,
-$$\begin{aligned}
-\mu, \sigma &= \text{NN}\_\theta(\mathbf{z}) \\\\
-p(\mathbf{x}|\mathbf{z};\theta) &= \mathcal{N}(\mathbf{x}; \mu, \sigma^2\mathbf{I})
-\end{aligned}$$
-- The approximate posterior $q(\mathbf{z}|\mathbf{x};\varphi)$ is parameterized
-with an **inference network** $\text{NN}\_\varphi$ (or encoder) that takes as input $\mathbf{x}$ and
-outputs parameters $\nu = \text{NN}\_\varphi(\mathbf{x})$ to the approximate posterior. E.g.,
-$$\begin{aligned}
-\mu, \sigma &= \text{NN}\_\varphi(\mathbf{x}) \\\\
-q(\mathbf{z}|\mathbf{x};\varphi) &= \mathcal{N}(\mathbf{z}; \mu, \sigma^2\mathbf{I})
-\end{aligned}$$
-
+Tots aquells alumnes que obtinguin una NF>=3,5 tenen dret a una re-avaluació al cap d’un dies de la publicació de
+NF. En aquests casos, la nota final de l’assignatura serà llavors la nota
+de la re-avaluació.
 
 ---
 
 class: middle
 
+#Teoria
 
-<center><img src="figures/lec6/vae.png" width="550"></center>
 
-.footnote[Credits: Francois Fleuret, [EE559 Deep Learning](https://fleuret.org/ee559/), EPFL.]
-
----
-
-class: middle
-
-As before, we can use variational inference, but to jointly optimize the generative and the inference networks parameters $\theta$ and $\varphi$.
-
-We want
-$$\begin{aligned}
-\theta^{\*}, \varphi^{\*} &= \arg \max\_{\theta,\varphi} \text{ELBO}(\mathbf{x};\theta,\varphi) \\\\
-&= \arg \max\_{\theta,\varphi} \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi)\right] \\\\
-&= \arg \max\_{\theta,\varphi} \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \log p(\mathbf{x}|\mathbf{z};\theta)\right] - KL(q(\mathbf{z}|\mathbf{x};\varphi) || p(\mathbf{z})).
-\end{aligned}$$
-
-- Given some generative network $\theta$, we want to put the mass of the latent variables, by adjusting $\varphi$, such that they explain the observed data, while remaining close to the prior.
-- Given some inference network $\varphi$, we want to put the mass of the observed variables, by adjusting $\theta$, such that
-they are well explained by the latent variables.
++ Presentació de l’assignatura 
++ Recomanadors 
++ El problema dels ítems freqüents 
++ Models Probabilístics 
++ Optimització 
++ A/B Testing 
++ Processament seqüencial de dades 
++ Xarxes Socials 
++ Aprenentatge interactiu 
++ XarxesNeuronals 
++ Visualitzacióde Dades 
++ Dades i Ètica 
 
 ---
 
 class: middle
 
-Unbiased gradients of the ELBO with respect to the generative model parameters $\theta$ are simple to obtain:
-$$\begin{aligned}
-\nabla\_\theta \text{ELBO}(\mathbf{x};\theta,\varphi) &= \nabla\_\theta \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi)\right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \nabla\_\theta ( \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi) ) \right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \nabla\_\theta \log p(\mathbf{x},\mathbf{z};\theta) \right],
-\end{aligned}$$
-which can be estimated with Monte Carlo integration.
+#Pràctiques
 
-However, gradients with respect to the inference model parameters $\varphi$ are
-more difficult to obtain:
-$$\begin{aligned}
-\nabla\_\varphi \text{ELBO}(\mathbf{x};\theta,\varphi) &= \nabla\_\varphi \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi)\right] \\\\
-&\neq \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \nabla\_\varphi ( \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi) ) \right]
-\end{aligned}$$
+
++ Python Avançat (Pandas, Numpy)
++ Recomanador
++ Optimizació
++ Anàlisi de Grafs
 
 ---
 
 class: middle
 
-Let us abbreviate
-$$\begin{aligned}
-\text{ELBO}(\mathbf{x};\theta,\varphi) &= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi)\right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ f(\mathbf{x}, \mathbf{z}; \varphi) \right].
-\end{aligned}$$
+##Entorn de treball: Instal·lació
 
-We have
+Hi ha diverses maneres d’instal·lar l’entorn de treball al vostre ordinador, però n’hi
+ha una que és extremadament senzilla: `http://continuum.io/downloads`
 
-.grid[
-.kol-1-5[]
-.kol-4-5[.center.width-90[![](figures/lec6/reparam-original.svg)]]
-]
-
-
-
-We cannot backpropagate through the stochastic node $\mathbf{z}$ to compute $\nabla\_\varphi f$!
-
----
-
-# Reparameterization trick
-
-The *reparameterization trick* consists in re-expressing the variable $$\mathbf{z} \sim q(\mathbf{z}|\mathbf{x};\varphi)$$ as some differentiable and invertible transformation
-of another random variable $\epsilon$ given $\mathbf{x}$ and $\varphi$,
-$$\mathbf{z} = g(\varphi, \mathbf{x}, \epsilon),$$
-such that the distribution of $\epsilon$ is independent of $\mathbf{x}$ or $\varphi$.
-
----
-
-class: middle
-
-.grid[
-.kol-1-5[]
-.kol-4-5[.center.width-90[![](figures/lec6/reparam-reparam.svg)]]
-
-
-]
-
-For example, if $q(\mathbf{z}|\mathbf{x};\varphi) = \mathcal{N}(\mathbf{z}; \mu(\mathbf{x};\varphi), \sigma^2(\mathbf{x};\varphi))$, where $\mu(\mathbf{x};\varphi)$ and $\sigma^2(\mathbf{x};\varphi)$
-are the outputs of the inference network $NN\_\varphi$, then a common reparameterization is:
-$$\begin{aligned}
-p(\epsilon) &= \mathcal{N}(\epsilon; \mathbf{0}, \mathbf{I}) \\\\
-\mathbf{z} &= \mu(\mathbf{x};\varphi) + \sigma(\mathbf{x};\varphi) \odot \epsilon
-\end{aligned}$$
-
----
-
-class: middle
-
-Given such a change of variable, the ELBO can be rewritten as:
-$$\begin{aligned}
-\text{ELBO}(\mathbf{x};\theta,\varphi) &= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ f(\mathbf{x}, \mathbf{z}; \varphi) \right]\\\\
-&= \mathbb{E}\_{p(\epsilon)} \left[ f(\mathbf{x}, g(\varphi,\mathbf{x},\epsilon); \varphi) \right]
-\end{aligned}$$
-Therefore,
-$$\begin{aligned}
-\nabla\_\varphi \text{ELBO}(\mathbf{x};\theta,\varphi) &= \nabla\_\varphi \mathbb{E}\_{p(\epsilon)} \left[  f(\mathbf{x}, g(\varphi,\mathbf{x},\epsilon); \varphi) \right] \\\\
-&= \mathbb{E}\_{p(\epsilon)} \left[ \nabla\_\varphi  f(\mathbf{x}, g(\varphi,\mathbf{x},\epsilon); \varphi) \right],
-\end{aligned}$$
-which we can now estimate with Monte Carlo integration.
-
-The last required ingredient is the evaluation of the likelihood $q(\mathbf{z}|\mathbf{x};\varphi)$ given the change of variable $g$. As long as $g$ is invertible, we have:
-$$\log q(\mathbf{z}|\mathbf{x};\varphi) = \log p(\epsilon) - \log \left| \det\left( \frac{\partial \mathbf{z}}{\partial \epsilon} \right) \right|.$$
-
----
-
-# Example
-
-Consider the following setup:
-- Generative model:
-$$\begin{aligned}
-\mathbf{z} &\in \mathbb{R}^J \\\\
-p(\mathbf{z}) &= \mathcal{N}(\mathbf{z}; \mathbf{0},\mathbf{I})\\\\
-p(\mathbf{x}|\mathbf{z};\theta) &= \mathcal{N}(\mathbf{x};\mu(\mathbf{z};\theta), \sigma^2(\mathbf{z};\theta)\mathbf{I}) \\\\
-\mu(\mathbf{z};\theta) &= \mathbf{W}\_2^T\mathbf{h} + \mathbf{b}\_2 \\\\
-\log \sigma^2(\mathbf{z};\theta) &= \mathbf{W}\_3^T\mathbf{h} + \mathbf{b}\_3 \\\\
-\mathbf{h} &= \text{ReLU}(\mathbf{W}\_1^T \mathbf{z} + \mathbf{b}\_1)\\\\
-\theta &= \\\{ \mathbf{W}\_1, \mathbf{b}\_1, \mathbf{W}\_2, \mathbf{b}\_2, \mathbf{W}\_3, \mathbf{b}\_3 \\\}
-\end{aligned}$$
-
----
-
-class: middle
-
-- Inference model:
-$$\begin{aligned}
-q(\mathbf{z}|\mathbf{x};\varphi) &=  \mathcal{N}(\mathbf{z};\mu(\mathbf{x};\varphi), \sigma^2(\mathbf{x};\varphi)\mathbf{I}) \\\\
-p(\epsilon) &= \mathcal{N}(\epsilon; \mathbf{0}, \mathbf{I}) \\\\
-\mathbf{z} &= \mu(\mathbf{x};\varphi) + \sigma(\mathbf{x};\varphi) \odot \epsilon \\\\
-\mu(\mathbf{x};\varphi) &= \mathbf{W}\_5^T\mathbf{h} + \mathbf{b}\_5 \\\\
-\log \sigma^2(\mathbf{x};\varphi) &= \mathbf{W}\_6^T\mathbf{h} + \mathbf{b}\_6 \\\\
-\mathbf{h} &= \text{ReLU}(\mathbf{W}\_4^T \mathbf{x} + \mathbf{b}\_4)\\\\
-\varphi &= \\\{ \mathbf{W}\_4, \mathbf{b}\_4, \mathbf{W}\_5, \mathbf{b}\_5, \mathbf{W}\_6, \mathbf{b}\_6 \\\}
-\end{aligned}$$
-
-Note that there is no restriction on the generative and inference network architectures.
-They could as well be arbitrarily complex convolutional networks.
-
----
-
-class: middle
-
-Plugging everything together, the objective can be expressed as:
-$$\begin{aligned}
-\text{ELBO}(\mathbf{x};\theta,\varphi) &= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)}\left[ \log p(\mathbf{x},\mathbf{z};\theta) - \log q(\mathbf{z}|\mathbf{x};\varphi)\right] \\\\
-&= \mathbb{E}\_{q(\mathbf{z}|\mathbf{x};\varphi)} \left[ \log p(\mathbf{x}|\mathbf{z};\theta) \right] - KL(q(\mathbf{z}|\mathbf{x};\varphi) || p(\mathbf{z})) \\\\
-&= \mathbb{E}\_{p(\epsilon)} \left[  \log p(\mathbf{x}|\mathbf{z}=g(\varphi,\mathbf{x},\epsilon);\theta) \right] - KL(q(\mathbf{z}|\mathbf{x};\varphi) || p(\mathbf{z}))
-\end{aligned}
-$$
-where the KL divergence can be expressed  analytically as
-$$KL(q(\mathbf{z}|\mathbf{x};\varphi) || p(\mathbf{z})) = \frac{1}{2} \sum\_{j=1}^J \left( 1 + \log(\sigma\_j^2(\mathbf{x};\varphi)) - \mu\_j^2(\mathbf{x};\varphi) - \sigma\_j^2(\mathbf{x};\varphi)\right),$$
-which allows to evaluate its derivative without approximation.
-
----
-
-class: middle
-
-Consider as data $\mathbf{d}$ the MNIST digit dataset:
-
-.center.width-100[![](figures/lec6/mnist.png)]
-
----
-
-class: middle, center
-
-
-<center><img src="figures/lec6/vae-samples.png" width="550"></center>
-
-
-
-(Kingma and Welling, 2013)
-
----
-
-class: middle, center
-
-
-<center><img src="figures/lec6/vae-interpolation.png" width="550"></center>
-
-
-(Kingma and Welling, 2013)
-
----
-
-class: middle
-
-# Applications of (variational) AEs
-
----
-
-class: middle, black-slide
-
-.center[
-
-<iframe width="640" height="400" src="https://www.youtube.com/embed/XNZIN7Jh3Sg?&loop=1&start=0" frameborder="0" volume="0" allowfullscreen></iframe>
-
-Random walks in latent space.
-
-(Alex Radford, 2015)
-
-]
-
----
-
-class: middle, black-slide
-
-.center[
-
-<iframe width="500" height="200" src="https://int8.io/wp-content/uploads/2016/12/output.mp4" frameborder="0" volume="0" allowfullscreen></iframe>
-
-Impersonation by encoding-decoding an unknown face.
-
-(Kamil Czarnogórski, 2016)
-]
-
----
-
-class: middle, black-slide
-
-.center[
-
-<iframe width="640" height="400" src="https://www.youtube.com/embed/Wd-1WU8emkw?&loop=1&start=0" frameborder="0" volume="0" allowfullscreen></iframe>
-
-(Inoue et al, 2017)
-
-]
+<center><img src="images/fig2.png" width="450"></center>
 
 
 ---
 
 class: middle
 
-.center.width-80[![](figures/lec6/vae-smile.png)]
-
-.center[(Tom White, 2016)]
-
----
-
-class: middle
-
-.center.width-60[![](figures/lec6/vae-text1.png)]
-
-.center[(Bowman et al, 2015)]
-
----
-
-class: middle
-
-.center.width-100[![](figures/lec6/bombarelli.jpeg)]
-
-.center[Design of new molecules with desired chemical properties.<br> (Gomez-Bombarelli et al, 2016)]
+##Python Data Analysis Tools
++ IPython: entorn de treball.
++ numpy: mòdul de Python per treballar amb matrius i vectors.
++ pandas: mòdul de Python per treballar amb taules
+heterogènies de dades.
++ scikit learn: mòdul de Python amb algorismes d’aprenentatge.
++ Matplotlib: mòdul de Python amb algorismes de visualització.
++ NetworkX: mòdul de Python amb algorismes de
+processament de grafs.
++ ...
 
 ---
 
-class: end-slide, center
-count: false
+class: middle, center, title-slide
 
-The end.
+# Què és al ciència de dades?
 
 ---
 
-# References
+class: center, middle, inverse
 
-- Mohamed and Rezende, "[Tutorial on Deep Generative Models](http://auai.org/uai2017/media/tutorials/shakir.pdf)", UAI 2017.
-- Blei et al, "[Variational inference: Foundations and modern methods](https://media.nips.cc/Conferences/2016/Slides/6199-Slides.pdf)", 2016.
-- Kingma and Welling, "[Auto-Encoding Variational Bayes](https://arxiv.org/pdf/1312.6114.pdf)", 2013.
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/DS.pdf
+
+
+---
+
+class: middle, center, title-slide
+
+# Recomanadors
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/REC.pdf
+
+---
+
+class: middle, center, title-slide
+
+# El problema dels ítems freqüents 
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/ITE.pdf
+
+---
+
+class: middle, center, title-slide
+
+# Models Probabilístics 
+
+
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/PRO.pdf
+
+---
+
+class: middle, center, title-slide
+
+# Optimització
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/
+
+---
+
+class: middle, center, title-slide
+
+# A/B Testing
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/ABT.pdf
+
+---
+
+class: middle, center, title-slide
+
+# Processament seqüencial de dades
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/STR.pdf
+
+---
+
+class: middle, center, title-slide
+
+# Xarxes Socials
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/NET.pdf
+
+---
+
+class: middle, center, title-slide
+
+# Aprenentatge Interactiu
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/BAN.pdf
+
+---
+
+class: middle, center, title-slide
+
+# XarxesNeuronals 
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/
+
+---
+
+class: middle, center, title-slide
+
+# Visualitzacióde Dades
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/
+
+---
+
+class: middle, center, title-slide
+
+# Dades i Ètica 
+
+---
+
+class: center, middle, inverse
+
+
+#### https://github.com/tnui2019/tnui2019.github.io/raw/master/pdf/DAD.pdf
+
+
+
+
 
 </textarea>
 
